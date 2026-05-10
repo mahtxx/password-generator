@@ -1,8 +1,10 @@
 # Password Generator
 
+**[Live Demo →](https://mahtxx.github.io/password-generator/)**
+
 A sleek, dark-themed password generator with a real-time strength meter. Built with pure HTML, CSS, and JavaScript — no dependencies, no backend, runs entirely in your browser.
 
-![Password Generator](https://img.shields.io/badge/HTML-CSS-JS-purple?style=flat-square) ![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
+![Password Generator](https://img.shields.io/badge/HTML-CSS-JS-purple?style=flat-square) ![Live](https://img.shields.io/badge/Live-GitHub%20Pages-brightgreen?style=flat-square) ![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
 
 ---
 
