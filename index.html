@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #07070f;
+      --surface: #0f0f1c;
+      --surface2: #181828;
+      --border: rgba(255,255,255,0.06);
+      --text: #e4e4f0;
+      --muted: #64648a;
+      --accent: #7c3aed;
+      --accent2: #3b82f6;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background-image:
+        radial-gradient(ellipse 60% 50% at 15% 60%, rgba(124,58,237,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 85% 20%, rgba(59,130,246,0.12) 0%, transparent 60%);
+    }
+
+    .container { width: 100%; max-width: 500px; }
+
+    header { text-align: center; margin-bottom: 2rem; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(124,58,237,0.12);
+      border: 1px solid rgba(124,58,237,0.28);
+      color: #a78bfa;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 100px;
+      margin-bottom: 1.1rem;
+    }
+
+    h1 {
+      font-size: 2.1rem;
+      font-weight: 800;
+      background: linear-gradient(140deg, #fff 20%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.4rem;
+      line-height: 1.1;
+    }
+
+    .subtitle { color: var(--muted); font-size: 0.88rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Password display */
+    .password-wrap {
+      position: relative;
+      margin-bottom: 1.2rem;
+    }
+
+    .password-field {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 3.5rem 1rem 1.25rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      word-break: break-all;
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      transition: border-color 0.2s;
+      line-height: 1.5;
+    }
+
+    .password-field:hover { border-color: rgba(124,58,237,0.35); }
+
+    .copy-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 6px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+    }
+
+    .copy-btn:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+    .copy-btn.copied { color: #10b981; }
+
+    /* Strength */
+    .strength-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+    }
+
+    .strength-row .label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .strength-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: color 0.3s;
+    }
+
+    .strength-track {
+      height: 5px;
+      background: var(--surface2);
+      border-radius: 100px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .strength-fill {
+      height: 100%;
+      border-radius: 100px;
+      transition: width 0.45s cubic-bezier(.4,0,.2,1), background 0.45s;
+    }
+
+    /* Slider */
+    .ctrl-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .length-val {
+      font-weight: 800;
+      font-size: 1rem;
+      color: #a78bfa;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 5px;
+      border-radius: 100px;
+      background: var(--surface2);
+      outline: none;
+      cursor: pointer;
+      margin-bottom: 1.4rem;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #3b82f6);
+      cursor: pointer;
+      box-shadow: 0 0 0 4px rgba(124,58,237,0.2);
+      transition: box-shadow 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      box-shadow: 0 0 0 7px rgba(124,58,237,0.18);
+    }
+
+    /* Toggles */
+    .toggles-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .toggles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 1.4rem;
+    }
+
+    .toggle-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .toggle-item:hover { border-color: rgba(124,58,237,0.25); }
+
+    .toggle-item.on {
+      border-color: rgba(124,58,237,0.45);
+      background: rgba(124,58,237,0.08);
+    }
+
+    .toggle-item input { display: none; }
+
+    .knob {
+      width: 34px;
+      height: 19px;
+      border-radius: 100px;
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.08);
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .knob::after {
+      content: '';
+      position: absolute;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--muted);
+      top: 2px;
+      left: 2px;
+      transition: all 0.22s cubic-bezier(.4,0,.2,1);
+    }
+
+    .toggle-item.on .knob {
+      background: rgba(124,58,237,0.35);
+      border-color: rgba(124,58,237,0.5);
+    }
+
+    .toggle-item.on .knob::after {
+      background: #a78bfa;
+      left: 17px;
+    }
+
+    .toggle-text {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+
+    .toggle-item.on .toggle-text { color: var(--text); }
+
+    /* Generate btn */
+    .gen-btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: 0.02em;
+    }
+
+    .gen-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(124,58,237,0.42);
+    }
+
+    .gen-btn:active { transform: translateY(0); }
+
+    /* History */
+    .history-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .hist-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 11px;
+      border-radius: 8px;
+      background: var(--surface2);
+      margin-bottom: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.77rem;
+      color: var(--muted);
+    }
+
+    .hist-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+
+    .hist-copy {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-left: 8px;
+      transition: all 0.2s;
+    }
+
+    .hist-copy:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid rgba(16,185,129,0.35);
+      color: #10b981;
+      padding: 9px 20px;
+      border-radius: 100px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+      pointer-events: none;
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="badge">🔐 Security Tool</div>
+    <h1>Password Generator</h1>
+    <p class="subtitle">Create strong, unbreakable passwords in seconds</p>
+  </header>
+
+  <div class="card">
+    <div class="password-wrap">
+      <div class="password-field" id="pwField">Click Generate to create a password</div>
+      <button class="copy-btn" id="copyBtn" title="Copy to clipboard">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="strength-row">
+      <span class="label">Strength</span>
+      <span class="strength-name" id="strengthName" style="color:var(--muted)">—</span>
+    </div>
+    <div class="strength-track">
+      <div class="strength-fill" id="strengthFill" style="width:0%;background:var(--muted)"></div>
+    </div>
+
+    <div class="ctrl-row">
+      <span>Password Length</span>
+      <span class="length-val" id="lenVal">16</span>
+    </div>
+    <input type="range" id="lenSlider" min="6" max="64" value="16">
+
+    <div class="toggles-label">Character Types</div>
+    <div class="toggles">
+      <label class="toggle-item on" id="tgl-upper">
+        <input type="checkbox" checked data-key="upper">
+        <div class="knob"></div>
+        <span class="toggle-text">Uppercase A–Z</span>
+      </label>
+      <label class="toggle-item on" id="tgl-lower">
+        <input type="checkbox" checked data-key="lower">
+        <div class="knob"></div>
+        <span class="toggle-text">Lowercase a–z</span>
+      </label>
+      <label class="toggle-item on" id="tgl-nums">
+        <input type="checkbox" checked data-key="numbers">
+        <div class="knob"></div>
+        <span class="toggle-text">Numbers 0–9</span>
+      </label>
+      <label class="toggle-item on" id="tgl-sym">
+        <input type="checkbox" checked data-key="symbols">
+        <div class="knob"></div>
+        <span class="toggle-text">Symbols !@#$</span>
+      </label>
+    </div>
+
+    <button class="gen-btn" id="genBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+      </svg>
+      Generate Password
+    </button>
+  </div>
+
+  <div class="card" id="histCard" style="display:none; padding:1.25rem 1.75rem;">
+    <div class="history-title">Recent Passwords</div>
+    <div id="histList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Copied to clipboard!</div>
+
+<script>
+  const CHARS = {
+    upper:   'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    lower:   'abcdefghijklmnopqrstuvwxyz',
+    numbers: '0123456789',
+    symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?'
+  };
+
+  let current = '';
+  let history  = [];
+
+  const pwField     = document.getElementById('pwField');
+  const copyBtn     = document.getElementById('copyBtn');
+  const lenSlider   = document.getElementById('lenSlider');
+  const lenVal      = document.getElementById('lenVal');
+  const genBtn      = document.getElementById('genBtn');
+  const strengthFill = document.getElementById('strengthFill');
+  const strengthName = document.getElementById('strengthName');
+  const histCard    = document.getElementById('histCard');
+  const histList    = document.getElementById('histList');
+  const toast       = document.getElementById('toast');
+
+  document.querySelectorAll('.toggle-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const cb = item.querySelector('input');
+      const activeCount = document.querySelectorAll('.toggle-item.on').length;
+      if (item.classList.contains('on') && activeCount <= 1) return;
+      cb.checked = !cb.checked;
+      item.classList.toggle('on', cb.checked);
+      if (current) generate();
+    });
+  });
+
+  lenSlider.addEventListener('input', () => {
+    lenVal.textContent = lenSlider.value;
+    if (current) generate();
+  });
+
+  function getCharset() {
+    let s = '';
+    document.querySelectorAll('.toggle-item.on input').forEach(cb => { s += CHARS[cb.dataset.key]; });
+    return s;
+  }
+
+  function generate() {
+    const len = parseInt(lenSlider.value);
+    const charset = getCharset();
+    if (!charset) return;
+    const arr = new Uint32Array(len);
+    crypto.getRandomValues(arr);
+    let pw = '';
+    for (let i = 0; i < len; i++) pw += charset[arr[i] % charset.length];
+    current = pw;
+    pwField.textContent = pw;
+    updateStrength(pw);
+    history.unshift(pw);
+    if (history.length > 5) history.pop();
+    renderHistory();
+  }
+
+  function updateStrength(pw) {
+    let score = 0;
+    if (pw.length >= 8)  score += 10;
+    if (pw.length >= 12) score += 15;
+    if (pw.length >= 16) score += 15;
+    if (pw.length >= 24) score += 10;
+    if (/[A-Z]/.test(pw))       score += 15;
+    if (/[a-z]/.test(pw))       score += 10;
+    if (/[0-9]/.test(pw))       score += 15;
+    if (/[^A-Za-z0-9]/.test(pw)) score += 20;
+    score = Math.min(score, 100);
+
+    let label, color;
+    if (score < 30)      { label = 'Weak';   color = '#ef4444'; }
+    else if (score < 55) { label = 'Fair';   color = '#f59e0b'; }
+    else if (score < 80) { label = 'Good';   color = '#3b82f6'; }
+    else                 { label = 'Strong'; color = '#10b981'; }
+
+    strengthFill.style.width      = score + '%';
+    strengthFill.style.background = color;
+    strengthName.textContent      = label;
+    strengthName.style.color      = color;
+  }
+
+  function renderHistory() {
+    if (!history.length) { histCard.style.display = 'none'; return; }
+    histCard.style.display = 'block';
+    histList.innerHTML = history.map(p => `
+      <div class="hist-item">
+        <span>${p}</span>
+        <button class="hist-copy" onclick="copyText('${p.replace(/'/g,"\\'")}')">Copy</button>
+      </div>`).join('');
+  }
+
+  function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard!'));
+  }
+
+  copyBtn.addEventListener('click', () => { if (current) copyText(current); });
+  genBtn.addEventListener('click', generate);
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  generate();
+</script>
+</body>
+</html>
